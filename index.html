@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glaubenssätze – Karten</title>
+<meta name="theme-color" content="#0ea5e9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAFX/qLlAAAAAElFTkSuQmCC">
+<link rel="manifest" href='data:application/manifest+json,{"name":%20"Glaubenss\u00e4tze%20Karten",%20"short_name":%20"Glaubenss\u00e4tze",%20"start_url":%20"./",%20"display":%20"standalone",%20"background_color":%20"#ffffff",%20"theme_color":%20"#0ea5e9",%20"icons":%20[{"src":%20"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAFX/qLlAAAAAElFTkSuQmCC",%20"sizes":%20"192x192",%20"type":%20"image/png"},%20{"src":%20"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAFX/qLlAAAAAElFTkSuQmCC",%20"sizes":%20"512x512",%20"type":%20"image/png"}]}'>
+<style>
+:root{
+  --bg:#f7fafc; --fg:#111827; --muted:#6b7280; --card:#ffffff; --accent:#0ea5e9; --border:#e5e7eb;
+}
+.dark{ --bg:#0b1120; --fg:#e5e7eb; --muted:#9ca3af; --card:#111827; --accent:#38bdf8; --border:#1f2937; }
+*{box-sizing:border-box} html,body{padding:0;margin:0;height:100%}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--fg);}
+.app{max-width:900px;margin:0 auto;padding:16px;display:flex;flex-direction:column;min-height:100%}
+header{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:20px;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,button{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:white}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border);color:var(--muted)}
+.type-pos .badge{border-color:#16a34a;color:#16a34a}
+.type-neg .badge{border-color:#ef4444;color:#ef4444}
+.belief{font-size:22px;line-height:1.3;margin:10px 0}
+.question{font-size:14px;color:var(--muted)}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.emojis button{font-size:18px;padding:6px 8px}
+footer{margin-top:auto;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted)}
+@media(min-width:768px){ .belief{font-size:26px} .question{font-size:15px} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <h1>Glaubenssätze – Karten</h1>
+    <div class="controls">
+      <select id="setSelect"></select>
+      <button id="prevBtn">◀︎</button>
+      <button id="nextBtn">▶︎</button>
+      <button id="randomBtn" class="primary">Zufall</button>
+      <button id="todayBtn">Karte des Tages</button>
+      <button id="darkBtn">🌙/☀️</button>
+    </div>
+  </header>
+
+  <div id="card" class="card">
+    <span id="badge" class="badge">Set</span>
+    <div id="belief" class="belief">—</div>
+    <div id="question" class="question">—</div>
+    <div class="emojis" style="margin-top:8px;display:flex;gap:6px;">
+      <button data-emoji="like" title="Gefällt mir">👍</button>
+      <button data-emoji="love" title="Berührt mich">❤️</button>
+      <button data-emoji="think" title="Regt zum Nachdenken an">🤔</button>
+      <span id="savedEmoji" class="small"></span>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="firstBtn">⏮</button>
+    <button id="lastBtn">⏭</button>
+  </div>
+
+  <footer>
+    <div class="small">Offline nutzbar. Tipp: Handy → „Zum Home‑Bildschirm hinzufügen“.</div>
+    <div class="small">Sets: 7 · Karten gesamt: <span id="countAll">—</span></div>
+  </footer>
+</div>
+
+<script>
+const DATA = {"Beziehungen & Bindung": {"color": "#2563eb", "cards": [{"type": "neg", "text": "Ich darf niemandem zur Last fallen.", "q": "Was würde passieren, wenn du deine Bedürfnisse äußerst?"}, {"type": "neg", "text": "Nähe führt immer zu Enttäuschung.", "q": "Welche Erfahrungen zeigen dir das Gegenteil?"}, {"type": "neg", "text": "Ich muss stark sein und darf keine Schwäche zeigen.", "q": "Was könnte passieren, wenn du dich verletzlich zeigst?"}, {"type": "neg", "text": "Wenn ich mich öffne, werde ich verlassen.", "q": "Wann hast du erlebt, dass Nähe gehalten wurde?"}, {"type": "neg", "text": "Ich bin nicht liebenswert.", "q": "Wer hat dir schon gezeigt, dass du liebenswert bist?"}, {"type": "neg", "text": "Andere sind wichtiger als ich.", "q": "Welche Momente zeigen, dass deine Bedürfnisse zählen?"}, {"type": "neg", "text": "Ich muss mich anpassen, sonst werde ich abgelehnt.", "q": "Wann wurdest du akzeptiert, obwohl du echt warst?"}, {"type": "neg", "text": "Gefühle zeigen ist gefährlich.", "q": "Wann war es hilfreich, Gefühle zu zeigen?"}, {"type": "neg", "text": "Ich verdiene keine Nähe.", "q": "Wer in deinem Leben zeigt dir das Gegenteil?"}, {"type": "neg", "text": "Vertrauen endet immer im Schmerz.", "q": "Gab es auch Erfahrungen, wo Vertrauen belohnt wurde?"}, {"type": "pos", "text": "Ich darf Bedürfnisse äußern.", "q": "Welche positiven Erfahrungen hast du damit gemacht?"}, {"type": "pos", "text": "Ich bin liebenswert, so wie ich bin.", "q": "Wer hat dir das schon gespiegelt?"}, {"type": "pos", "text": "Nähe kann bereichernd und stärkend sein.", "q": "Wann hast du das erlebt?"}, {"type": "pos", "text": "Ich darf mich verletzlich zeigen.", "q": "Wie reagieren Menschen, wenn du dich öffnest?"}, {"type": "pos", "text": "Ich bin wertvoll in Beziehungen.", "q": "Woran erkennst du das?"}, {"type": "pos", "text": "Es ist sicher, Gefühle zu teilen.", "q": "Mit wem kannst du das tun?"}, {"type": "pos", "text": "Vertrauen kann wachsen.", "q": "Wann ist das schon gelungen?"}, {"type": "pos", "text": "Ich habe ein Recht auf Nähe.", "q": "Wo spürst du dieses Recht im Alltag?"}, {"type": "pos", "text": "Meine Bedürfnisse sind wichtig.", "q": "Welche Situation zeigt dir das?"}, {"type": "pos", "text": "Ich darf authentisch sein.", "q": "Wann warst du du selbst – und es war gut?"}]}, "Leistung & Versagen": {"color": "#f59e0b", "cards": [{"type": "neg", "text": "Mein Wert hängt von meiner Leistung ab.", "q": "Wer bestimmt deinen Wert wirklich?"}, {"type": "neg", "text": "Fehler sind unverzeihlich.", "q": "Wann hast du erlebt, dass Fehler erlaubt waren?"}, {"type": "neg", "text": "Ich muss immer perfekt sein.", "q": "Was passiert, wenn du nicht perfekt bist?"}, {"type": "neg", "text": "Nur wenn ich schnell bin, bin ich gut.", "q": "Wann war Gründlichkeit wichtiger als Tempo?"}, {"type": "neg", "text": "Hilfe annehmen ist Schwäche.", "q": "Welche Stärke steckt in Kooperation?"}, {"type": "neg", "text": "Ich bin nur gut genug, wenn andere mich loben.", "q": "Was zeigt dir unabhängig davon deinen Wert?"}, {"type": "neg", "text": "Versagen ist eine Katastrophe.", "q": "Welche Chancen können im Versagen liegen?"}, {"type": "neg", "text": "Andere sind immer besser als ich.", "q": "Wann warst du der/die Richtige?"}, {"type": "neg", "text": "Ich darf keine Pausen machen.", "q": "Welche Wirkung haben Pausen auf dich?"}, {"type": "neg", "text": "Leistung ist alles.", "q": "Welche anderen Werte sind dir wichtig?"}, {"type": "pos", "text": "Mein Wert ist unabhängig von Leistung.", "q": "Was macht dich wertvoll außer Arbeit?"}, {"type": "pos", "text": "Fehler sind Lernchancen.", "q": "Welche Lektion hat dir ein Fehler gebracht?"}, {"type": "pos", "text": "Ich darf unperfekt sein.", "q": "Wann war unperfekt sogar hilfreich?"}, {"type": "pos", "text": "Langsam darf auch gut sein.", "q": "Wann war Ruhe ein Vorteil?"}, {"type": "pos", "text": "Hilfe annehmen ist Stärke.", "q": "Welche positive Erfahrung hast du damit?"}, {"type": "pos", "text": "Mein Wert ist innerlich verankert.", "q": "Woran spürst du ihn?"}, {"type": "pos", "text": "Versuche sind wertvoll, auch wenn sie scheitern.", "q": "Welcher Versuch hat dir trotz Scheiterns geholfen?"}, {"type": "pos", "text": "Ich habe einzigartige Stärken.", "q": "Welche erkennst du bei dir?"}, {"type": "pos", "text": "Pausen fördern Leistung.", "q": "Wann hast du das bemerkt?"}, {"type": "pos", "text": "Leistung ist ein Teil, aber nicht alles.", "q": "Was ist dir noch wichtig im Leben?"}]}, "Körper & Gesundheit": {"color": "#16a34a", "cards": [{"type": "neg", "text": "Mein Körper ist nicht gut genug.", "q": "Welche Teile an dir funktionieren verlässlich?"}, {"type": "neg", "text": "Ich darf keine Schwäche zeigen.", "q": "Wann war es hilfreich, Schwäche zu zeigen?"}, {"type": "neg", "text": "Gesundheit bedeutet Leistung.", "q": "Wann bedeutet sie Lebensqualität?"}, {"type": "neg", "text": "Ich muss Schmerzen ignorieren.", "q": "Wann war es hilfreich, sie ernst zu nehmen?"}, {"type": "neg", "text": "Mein Körper ist mein Feind.", "q": "Wann war er dein Verbündeter?"}, {"type": "neg", "text": "Ich darf keine Hilfe annehmen.", "q": "Wann war Hilfe wichtig?"}, {"type": "neg", "text": "Ich bin zu schwach.", "q": "Wann hast du Stärke gespürt?"}, {"type": "neg", "text": "Krankheit ist Versagen.", "q": "Welche Botschaft kann sie auch enthalten?"}, {"type": "neg", "text": "Mein Aussehen bestimmt meinen Wert.", "q": "Was macht dich wertvoll unabhängig davon?"}, {"type": "neg", "text": "Ich habe keine Kontrolle über meinen Körper.", "q": "Wann hast du Einfluss gespürt?"}, {"type": "pos", "text": "Mein Körper verdient Fürsorge.", "q": "Wie kannst du ihn heute pflegen?"}, {"type": "pos", "text": "Schwäche zeigen ist menschlich.", "q": "Wann hat dir das geholfen?"}, {"type": "pos", "text": "Gesundheit bedeutet Wohlbefinden.", "q": "Wann hast du dich wohl gefühlt?"}, {"type": "pos", "text": "Schmerzen sind Signale.", "q": "Wie kannst du darauf hören?"}, {"type": "pos", "text": "Mein Körper ist mein Partner.", "q": "Wann war er zuverlässig?"}, {"type": "pos", "text": "Ich darf Hilfe annehmen.", "q": "Welche gute Erfahrung kennst du dazu?"}, {"type": "pos", "text": "Ich habe Stärken.", "q": "Welche spürst du körperlich?"}, {"type": "pos", "text": "Krankheit ist ein Signal, kein Versagen.", "q": "Welche Botschaft steckt darin?"}, {"type": "pos", "text": "Mein Wert ist unabhängig vom Aussehen.", "q": "Was zeigt dir das?"}, {"type": "pos", "text": "Ich habe Einfluss auf mein Wohlbefinden.", "q": "Welche Handlung stärkt dich?"}]}, "Ängste & Sorgen": {"color": "#eab308", "cards": [{"type": "neg", "text": "Etwas Schlimmes wird bestimmt passieren.", "q": "Wie oft ist es wirklich eingetreten?"}, {"type": "neg", "text": "Ich darf keine Risiken eingehen.", "q": "Wann war ein Risiko lohnend?"}, {"type": "neg", "text": "Angst zeigt, dass ich schwach bin.", "q": "Wann war Angst ein guter Ratgeber?"}, {"type": "neg", "text": "Ich darf nicht auffallen.", "q": "Wann war Sichtbarkeit hilfreich?"}, {"type": "neg", "text": "Ich habe keine Kontrolle.", "q": "Welche Bereiche kannst du beeinflussen?"}, {"type": "neg", "text": "Ich muss alles im Griff haben.", "q": "Was passiert, wenn du loslässt?"}, {"type": "neg", "text": "Meine Sorgen schützen andere.", "q": "Wem hilft das wirklich?"}, {"type": "neg", "text": "Ich halte das nicht aus.", "q": "Wann hast du schon mehr ausgehalten als gedacht?"}, {"type": "neg", "text": "Gefahr ist überall.", "q": "Wo ist Sicherheit spürbar?"}, {"type": "neg", "text": "Ich darf keine Hilfe annehmen.", "q": "Wann war Hilfe entlastend?"}, {"type": "pos", "text": "Ich kann Schritt für Schritt vorgehen.", "q": "Welcher kleine Schritt ist jetzt möglich?"}, {"type": "pos", "text": "Risiken gehören zum Leben.", "q": "Wann hast du davon profitiert?"}, {"type": "pos", "text": "Angst zeigt, was mir wichtig ist.", "q": "Was steckt dahinter?"}, {"type": "pos", "text": "Ich darf sichtbar sein.", "q": "Wann war es bereichernd?"}, {"type": "pos", "text": "Ich habe Einfluss.", "q": "Worauf konkret?"}, {"type": "pos", "text": "Loslassen darf entlasten.", "q": "Wann war das so?"}, {"type": "pos", "text": "Sorgen sind Gedanken, keine Realität.", "q": "Wie kannst du sie prüfen?"}, {"type": "pos", "text": "Ich bin belastbarer als ich denke.", "q": "Wann war das so?"}, {"type": "pos", "text": "Es gibt sichere Orte.", "q": "Welcher fällt dir ein?"}, {"type": "pos", "text": "Hilfe annehmen ist erlaubt.", "q": "Welche Person könnte dich stärken?"}]}, "Jugend & Schule": {"color": "#06b6d4", "cards": [{"type": "neg", "text": "Ich bin nicht cool genug.", "q": "Was macht dich unabhängig von 'cool' liebenswert?"}, {"type": "neg", "text": "Wenn ich Fehler mache, blamier ich mich.", "q": "Wem ist ein Fehler zuletzt verziehen worden – und warum?"}, {"type": "neg", "text": "Andere sind immer besser in der Schule.", "q": "In welchem Fach/Projekt warst du stark?"}, {"type": "neg", "text": "Lehrer mögen mich eh nicht.", "q": "Gab es eine faire oder nette Reaktion von Lehrkräften?"}, {"type": "neg", "text": "Ich passe nicht dazu.", "q": "Wo hast du dich schon zugehörig gefühlt?"}, {"type": "neg", "text": "Ich darf keine Hilfe fragen.", "q": "Wer könnte dir gut helfen (Lehrer, Freund:in, Eltern)?"}, {"type": "neg", "text": "Wenn ich nicht perfekt lerne, falle ich durch.", "q": "Welche Teilschritte bringen dich sicher voran?"}, {"type": "neg", "text": "Hausaufgaben sagen alles über mich aus.", "q": "Welche anderen Qualitäten hast du?"}, {"type": "neg", "text": "Präsentationen gehen immer schief.", "q": "Wann lief ein Vortrag besser als gedacht?"}, {"type": "neg", "text": "Pausen sind Zeitverschwendung.", "q": "Wie helfen dir Pausen beim Lernen?"}, {"type": "pos", "text": "Ich darf in meinem Tempo lernen.", "q": "Welcher kleine Lernschritt ist heute realistisch?"}, {"type": "pos", "text": "Fehler helfen mir zu verstehen.", "q": "Was hast du aus einem Fehler gelernt?"}, {"type": "pos", "text": "Ich kann um Hilfe bitten.", "q": "Wen fragst du als Nächstes – und wobei?"}, {"type": "pos", "text": "Ich gehöre dazu, auch wenn ich anders bin.", "q": "Wo hast du das gespürt?"}, {"type": "pos", "text": "Ich habe Stärken – auch außerhalb der Schule.", "q": "Welche Stärke hilft dir beim Lernen?"}, {"type": "pos", "text": "Pausen machen mich leistungsfähiger.", "q": "Welche Pause tut dir gut?"}, {"type": "pos", "text": "Ich darf nervös sein und es trotzdem schaffen.", "q": "Was beruhigt dich vor Auftritten?"}, {"type": "pos", "text": "Ich kann Fortschritte feiern, nicht nur Noten.", "q": "Welchen Fortschritt siehst du gerade?"}, {"type": "pos", "text": "Lehrer:innen können Verbündete sein.", "q": "Wem könntest du vertrauen?"}, {"type": "pos", "text": "Ich darf meinen Weg finden.", "q": "Was ist dein nächster Schritt?"}]}, "Freundschaft & Selbstwert": {"color": "#9333ea", "cards": [{"type": "neg", "text": "Ich habe nichts Spannendes zu erzählen.", "q": "Was interessiert dich – und wen könnte das auch interessieren?"}, {"type": "neg", "text": "Wenn ich 'nein' sage, verliere ich Freunde.", "q": "Wer blieb dir treu, obwohl du Grenzen gesetzt hast?"}, {"type": "neg", "text": "Alle finden andere cooler als mich.", "q": "Wer verbringt gern Zeit mit dir – und warum?"}, {"type": "neg", "text": "Ich muss mich verstellen, um dazuzugehören.", "q": "Wann hat dich Ehrlichkeit nähergebracht?"}, {"type": "neg", "text": "Niemand versteht mich.", "q": "Wer hat dich schonmal wirklich verstanden?"}, {"type": "neg", "text": "Ich darf meine Gefühle nicht zeigen.", "q": "Wem könntest du etwas Kleines anvertrauen?"}, {"type": "neg", "text": "Konflikte ruinieren Freundschaften.", "q": "Wann hat ein ehrliches Gespräch etwas verbessert?"}, {"type": "neg", "text": "Ich bin nicht gut genug als Freund:in.", "q": "Worin bist du eine gute Freundin/ein guter Freund?"}, {"type": "neg", "text": "Ich bin langweilig.", "q": "Was sind deine besonderen Interessen?"}, {"type": "neg", "text": "Ich werde immer ausgegrenzt.", "q": "Wann warst du willkommen?"}, {"type": "pos", "text": "Ich darf Grenzen setzen.", "q": "Wo sagst du demnächst freundlich 'nein'?"}, {"type": "pos", "text": "Echte Freund:innen mögen mich, wie ich bin.", "q": "Wer zeigt dir das?"}, {"type": "pos", "text": "Meine Gefühle sind wichtig.", "q": "Wie könntest du sie heute zeigen?"}, {"type": "pos", "text": "Konflikte kann man lösen.", "q": "Wie könntest du einen ansprechen?"}, {"type": "pos", "text": "Ich bringe etwas Einzigartiges mit.", "q": "Was ist das?"}, {"type": "pos", "text": "Ich darf Unterstützung holen.", "q": "Wer kann dich gerade stärken?"}, {"type": "pos", "text": "Ich bin eine verlässliche Freund:in.", "q": "Woran merkt man das?"}, {"type": "pos", "text": "Ich darf echt sein.", "q": "Wo willst du dich weniger verstellen?"}, {"type": "pos", "text": "Ich finde Menschen, die zu mir passen.", "q": "Wo könntest du sie treffen?"}, {"type": "pos", "text": "Ich wachse an Begegnungen.", "q": "Was hast du aus einer Freundschaft gelernt?"}]}, "Digitale Welt / Social Media": {"color": "#ef4444", "cards": [{"type": "neg", "text": "Likes bestimmen meinen Wert.", "q": "Wodurch zeigt sich dein Wert offline?"}, {"type": "neg", "text": "Alle anderen haben ein perfektes Leben.", "q": "Was sieht man online nicht?"}, {"type": "neg", "text": "Ohne Handy bin ich langweilig.", "q": "Was macht dich ohne Bildschirm aus?"}, {"type": "neg", "text": "Wenn ich nicht antworte, verliere ich Freunde.", "q": "Wer respektiert deine Pausen?"}, {"type": "neg", "text": "Ich muss ständig online sein.", "q": "Welche Offline-Zeit tut dir gut?"}, {"type": "neg", "text": "Hate-Kommentare sind meine Schuld.", "q": "Wer ist verantwortlich für Hate?"}, {"type": "neg", "text": "Ich vergleiche mich ständig und verliere.", "q": "Womit könntest du dich fair vergleichen?"}, {"type": "neg", "text": "Privatsphäre ist egal.", "q": "Was willst du bewusst schützen?"}, {"type": "neg", "text": "Ich verpasse alles (FOMO).", "q": "Was ist dir wirklich wichtig?"}, {"type": "neg", "text": "Nur mit Filtern sehe ich gut aus.", "q": "Wer mag dich auch ohne Filter?"}, {"type": "pos", "text": "Ich bin mehr als meine Online-Zahlen.", "q": "Was macht dich unabhängig von Likes wertvoll?"}, {"type": "pos", "text": "Online ist nur ein Ausschnitt.", "q": "Welcher Teil fehlt online von dir?"}, {"type": "pos", "text": "Offline-Zeit stärkt mich.", "q": "Wann planst du die nächste Bildschirmpause?"}, {"type": "pos", "text": "Ich darf Grenzen setzen (Mute/Block).", "q": "Wen/was möchtest du begrenzen?"}, {"type": "pos", "text": "Ich wähle, womit ich mich vergleiche.", "q": "Was wäre ein fairer Vergleich?"}, {"type": "pos", "text": "Ich pflege echte Kontakte.", "q": "Wen triffst du offline?"}, {"type": "pos", "text": "Ich schütze meine Privatsphäre.", "q": "Welche Einstellung änderst du heute?"}, {"type": "pos", "text": "Ich bin okay ohne Filter.", "q": "Was magst du an dir?"}, {"type": "pos", "text": "Pausen machen mich präsenter.", "q": "Wann legst du das Handy weg?"}, {"type": "pos", "text": "Ich gestalte mein digitales Wohlbefinden.", "q": "Welcher kleine Schritt hilft jetzt?"}]}};
+
+const el = s => document.querySelector(s);
+const setSelect = el('#setSelect');
+const beliefEl = el('#belief');
+const questionEl = el('#question');
+const badgeEl = el('#badge');
+const savedEmojiEl = el('#savedEmoji');
+const countAllEl = el('#countAll');
+let currentSet = Object.keys(DATA)[0];
+let idx = 0;
+
+// Init set list
+for(const name of Object.keys(DATA)){
+  const opt = document.createElement('option'); opt.value=name; opt.textContent=name; setSelect.appendChild(opt);
+}
+setSelect.value = currentSet;
+
+// Helpers
+function cardsOf(setName){ return DATA[setName].cards }
+function colorFor(setName){ return DATA[setName].color || '#0ea5e9' }
+function storageKey(set, i){ return 'gs-emoji-'+set+'-'+i }
+function emojiLabel(k){ return k==='like'?'👍':(k==='love'?'❤️':'🤔') }
+function countAll(){
+  return Object.values(DATA).reduce((acc,s)=>acc+s.cards.length,0)
+}
+countAllEl.textContent = countAll();
+
+function render(){
+  const set = DATA[currentSet];
+  const card = set.cards[idx];
+  badgeEl.textContent = currentSet + ' • ' + (idx+1) + '/' + set.cards.length + (card.type==='pos'?' • positiv':' • negativ');
+  badgeEl.style.borderColor = (card.type==='pos'?'#16a34a':'#ef4444');
+  badgeEl.style.color = (card.type==='pos'?'#16a34a':'#ef4444');
+  beliefEl.textContent = card.text;
+  questionEl.textContent = 'Reflexionsfrage: ' + card.q;
+  document.getElementById('card').style.borderColor = colorFor(currentSet);
+  const saved = localStorage.getItem(storageKey(currentSet, idx));
+  savedEmojiEl.textContent = saved ? 'Markiert: ' + emojiLabel(saved) : '';
+}
+
+setSelect.addEventListener('change', ()=>{ currentSet=setSelect.value; idx=0; render(); });
+document.getElementById('prevBtn').addEventListener('click', ()=>{ idx = (idx-1+cardsOf(currentSet).length)%cardsOf(currentSet).length; render(); });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ idx = (idx+1)%cardsOf(currentSet).length; render(); });
+document.getElementById('firstBtn').addEventListener('click', ()=>{ idx=0; render(); });
+document.getElementById('lastBtn').addEventListener('click', ()=>{ idx=cardsOf(currentSet).length-1; render(); });
+
+document.getElementById('randomBtn').addEventListener('click', ()=>{ 
+  idx = Math.floor(Math.random()*cardsOf(currentSet).length); render();
+});
+
+document.getElementById('todayBtn').addEventListener('click', ()=>{ 
+  // Karte des Tages aus ALLEN Karten (deterministisch pro Tag)
+  const all = [];
+  for(const [name,set] of Object.entries(DATA)){ set.cards.forEach((c,i)=>all.push({set:name,index:i})) }
+  const today = new Date().toISOString().slice(0,10);
+  let hash = 0; for(const ch of today){ hash = (hash*31 + ch.charCodeAt(0)) >>> 0 }
+  const pick = all[hash % all.length];
+  currentSet = pick.set; setSelect.value = currentSet; idx = pick.index; render();
+});
+
+// Emoji reactions
+document.querySelectorAll('.emojis button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const key = storageKey(currentSet, idx);
+    localStorage.setItem(key, btn.dataset.emoji);
+    savedEmojiEl.textContent = 'Markiert: ' + emojiLabel(btn.dataset.emoji);
+  })
+});
+
+// Dark mode toggle
+const darkBtn = document.getElementById('darkBtn');
+const root = document.documentElement;
+function applyTheme(){
+  const saved = localStorage.getItem('gs-theme') || 'auto';
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark = saved==='dark' || (saved==='auto' && prefersDark);
+  if(dark) root.classList.add('dark'); else root.classList.remove('dark');
+}
+applyTheme();
+darkBtn.addEventListener('click', ()=>{
+  const saved = localStorage.getItem('gs-theme') || 'auto';
+  const next = saved==='light' ? 'dark' : (saved==='dark' ? 'auto' : 'light');
+  localStorage.setItem('gs-theme', next);
+  applyTheme();
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
